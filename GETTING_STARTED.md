@@ -28,7 +28,7 @@ git commit -m "Initial commit: Frontend interview prep repository"
 
 ```bash
 # Add remote origin (replace with your repository URL)
-git remote add origin https://github.com/YOUR_USERNAME/frontend-interview-prep.git
+git remote add origin https://github.com/sahilKumar1122/frontend-interview-prep.git
 
 # Push to GitHub
 git branch -M main

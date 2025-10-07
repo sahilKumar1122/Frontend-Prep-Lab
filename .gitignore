@@ -28,3 +28,8 @@ private/
 # Build outputs (if you add any build process)
 dist/
 build/
+
+# Promotional/Marketing files (keep private, don't push to GitHub)
+dev-to-article.md
+PROMOTION_GUIDE.md
+SOCIAL_MEDIA_POSTS.md
