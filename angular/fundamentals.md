@@ -306,214 +306,459 @@ src/
 
 Angular components have a **well-defined lifecycle** managed by the framework. Understanding these hooks is crucial for proper resource management, performance optimization, and avoiding memory leaks.
 
-**Lifecycle Hook Order:**
+**For a comprehensive deep dive on all 8 lifecycle hooks with detailed WHEN, WHY, and real-world scenarios, see [Lifecycle Hooks Deep Dive](./lifecycle-hooks.md)**
+
+**Quick Summary of Lifecycle Hooks:**
 
 ```typescript
-import { 
-  Component, OnInit, OnChanges, DoCheck, AfterContentInit,
-  AfterContentChecked, AfterViewInit, AfterViewChecked, OnDestroy,
-  SimpleChanges, Input, ViewChild, ContentChild
-} from '@angular/core';
-
 @Component({
-  selector: 'app-lifecycle-demo',
+  selector: 'app-example',
+  template: `...`
+})
+export class ExampleComponent implements OnInit, OnDestroy {
+  @Input() data: any;
+  @ViewChild('element') element!: ElementRef;
+  
+  constructor() { /* DI only */ }
+  
+  ngOnInit(): void {
+    // ✅ Initialize component, fetch data, set up subscriptions
+  }
+  
+  ngAfterViewInit(): void {
+    // ✅ Access DOM elements, initialize third-party libraries
+  }
+  
+  ngOnDestroy(): void {
+    // ✅ CRITICAL: Clean up subscriptions, timers, event listeners
+  }
+}
+```
+
+**The 8 Lifecycle Hooks (in order):**
+
+1. **ngOnChanges()** - Fires when `@Input()` properties change
+2. **ngOnInit()** - Fires once after first `ngOnChanges()` (initialization)
+3. **ngDoCheck()** - Fires on every change detection cycle (use sparingly)
+4. **ngAfterContentInit()** - Fires after `<ng-content>` is projected
+5. **ngAfterContentChecked()** - Fires after content is checked (frequent)
+6. **ngAfterViewInit()** - Fires after component view is initialized
+7. **ngAfterViewChecked()** - Fires after view is checked (frequent)
+8. **ngOnDestroy()** - Fires before component is destroyed (cleanup)
+
+**Most Important Hooks:**
+- **ngOnInit** for initialization and data fetching
+- **ngAfterViewInit** for DOM access
+- **ngOnDestroy** for cleanup (prevent memory leaks!)
+
+**Common Mistakes:**
+- ❌ Accessing `@ViewChild` in `ngOnInit` (undefined until `ngAfterViewInit`)
+- ❌ Forgetting to unsubscribe in `ngOnDestroy` (memory leaks)
+- ❌ Heavy operations in `ngDoCheck` or `ngAfterViewChecked` (performance)
+
+**For detailed explanations with real-world scenarios, see [Lifecycle Hooks Deep Dive](./lifecycle-hooks.md)**
+
+---
+```typescript
+@Component({
+  selector: 'app-live-dashboard',
   template: `
-    <div>
-      <h2>{{ title }}</h2>
-      <ng-content></ng-content>
-      <div #outputDiv></div>
+    <div class="dashboard">
+      <h1>Live Stock Dashboard</h1>
+      <div *ngFor="let stock of stocks$ | async">
+        {{ stock.symbol }}: ${{ stock.price }}
+      </div>
+      <canvas #chartCanvas></canvas>
     </div>
   `
 })
-export class LifecycleDemoComponent implements 
-  OnChanges, OnInit, DoCheck, AfterContentInit, AfterContentChecked,
-  AfterViewInit, AfterViewChecked, OnDestroy {
+export class LiveDashboardComponent implements OnInit, OnDestroy {
+  @ViewChild('chartCanvas') chartCanvas!: ElementRef;
   
-  @Input() title: string = '';
-  @Input() data: any;
-  @ViewChild('outputDiv') outputDiv!: ElementRef;
-  @ContentChild('projectedContent') projectedContent!: ElementRef;
-  
-  // 1. Called before ngOnInit when input properties change
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log('1. ngOnChanges', changes);
-    
-    // Use case: React to input changes
-    if (changes['data'] && !changes['data'].firstChange) {
-      this.processDataChange(changes['data'].currentValue);
-    }
-  }
-  
-  // 2. Called once after first ngOnChanges
-  ngOnInit(): void {
-    console.log('2. ngOnInit');
-    
-    // ✅ BEST PRACTICE: Initialize component here
-    // - Fetch data from services
-    // - Set up subscriptions
-    // - Initialize complex properties
-    this.loadInitialData();
-  }
-  
-  // 3. Called during every change detection run
-  ngDoCheck(): void {
-    console.log('3. ngDoCheck');
-    
-    // ⚠️ WARNING: Called very frequently - keep logic minimal
-    // Use case: Detect changes Angular doesn't catch (nested objects)
-  }
-  
-  // 4. Called after content (ng-content) is projected
-  ngAfterContentInit(): void {
-    console.log('4. ngAfterContentInit');
-    
-    // Use case: Access @ContentChild elements
-    if (this.projectedContent) {
-      console.log('Projected content ready');
-    }
-  }
-  
-  // 5. Called after every check of projected content
-  ngAfterContentChecked(): void {
-    console.log('5. ngAfterContentChecked');
-    // ⚠️ Avoid heavy operations here
-  }
-  
-  // 6. Called after component's view is initialized
-  ngAfterViewInit(): void {
-    console.log('6. ngAfterViewInit');
-    
-    // ✅ BEST PRACTICE: Access @ViewChild elements here
-    if (this.outputDiv) {
-      this.outputDiv.nativeElement.textContent = 'View ready!';
-    }
-    
-    // Initialize third-party libraries (charts, maps, etc.)
-    this.initializeChart();
-  }
-  
-  // 7. Called after every check of component's view
-  ngAfterViewChecked(): void {
-    console.log('7. ngAfterViewChecked');
-    // ⚠️ Avoid state changes here (causes ExpressionChangedAfterItHasBeenCheckedError)
-  }
-  
-  // 8. Called just before component is destroyed
-  ngOnDestroy(): void {
-    console.log('8. ngOnDestroy');
-    
-    // ✅ CRITICAL: Cleanup here
-    // - Unsubscribe from observables
-    // - Clear timers
-    // - Detach event listeners
-    // - Cancel pending HTTP requests
-    this.cleanup();
-  }
-  
-  private loadInitialData(): void {
-    // Fetch data logic
-  }
-  
-  private processDataChange(newData: any): void {
-    // Handle data changes
-  }
-  
-  private initializeChart(): void {
-    // Third-party library initialization
-  }
-  
-  private cleanup(): void {
-    // Cleanup logic
-  }
-}
-```
-
-**Common Real-World Use Cases:**
-
-```typescript
-// Use Case 1: Data Fetching Component
-@Component({
-  selector: 'app-user-profile',
-  template: `...`
-})
-export class UserProfileComponent implements OnInit, OnDestroy {
-  @Input() userId: string = '';
-  user$ = new Subject<User>();
+  stocks$ = new Subject<Stock[]>();
   private destroy$ = new Subject<void>();
+  private pollingSubscription?: Subscription;
+  private intervalId?: number;
+  private websocket?: WebSocket;
+  private chart: any;
+  private resizeHandler?: () => void;
   
-  constructor(private userService: UserService) {}
+  constructor(
+    private stockService: StockService,
+    private notificationService: NotificationService,
+    private analytics: AnalyticsService
+  ) {}
   
   ngOnInit(): void {
-    // ✅ Best place to fetch data
-    this.userService.getUser(this.userId)
+    // 1. ✅ Observable subscription
+    this.stockService.getLiveStocks()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(user => this.user$.next(user));
+      .subscribe(stocks => {
+        this.stocks$.next(stocks);
+        this.updateChart(stocks);
+      });
+    
+    // 2. ✅ Interval polling (fallback if WebSocket fails)
+    this.pollingSubscription = interval(5000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.checkForUpdates());
+    
+    // 3. ✅ setTimeout/setInterval
+    this.intervalId = window.setInterval(() => {
+      this.analytics.trackEngagement('dashboard-active');
+    }, 30000); // Track every 30 seconds
+    
+    // 4. ✅ WebSocket connection
+    this.websocket = new WebSocket('wss://api.stocks.com/live');
+    this.websocket.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      this.handleRealtimeUpdate(update);
+    };
+    this.websocket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      this.notificationService.showError('Connection lost');
+    };
+    
+    // 5. ✅ DOM event listener
+    this.resizeHandler = () => this.handleResize();
+    window.addEventListener('resize', this.resizeHandler);
+    
+    // 6. ✅ Store subscription (NgRx example)
+    // this.store.select(selectUser)
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe(user => this.currentUser = user);
   }
   
   ngOnDestroy(): void {
-    // ✅ Prevent memory leaks
+    // ✅ CRITICAL CLEANUP - Do ALL of these!
+    console.log('Cleaning up dashboard component...');
+    
+    // 1. Unsubscribe all observables using Subject pattern
     this.destroy$.next();
     this.destroy$.complete();
-  }
-}
-
-// Use Case 2: Integration with Third-Party Libraries
-@Component({
-  selector: 'app-chart',
-  template: `<div #chartContainer></div>`
-})
-export class ChartComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('chartContainer') chartContainer!: ElementRef;
-  private chart: any;
-  
-  ngAfterViewInit(): void {
-    // ✅ DOM is ready, safe to initialize chart
-    this.chart = new ThirdPartyChart(this.chartContainer.nativeElement, {
-      data: this.data,
-      options: this.options
-    });
-  }
-  
-  ngOnDestroy(): void {
-    // ✅ Destroy chart instance
+    
+    // 2. Unsubscribe manual subscriptions (if not using takeUntil)
+    this.pollingSubscription?.unsubscribe();
+    
+    // 3. Clear timers
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+    
+    // 4. Close WebSocket connection
+    if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+      this.websocket.close();
+    }
+    
+    // 5. Remove event listeners
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
+    
+    // 6. Dispose third-party libraries
     if (this.chart) {
       this.chart.destroy();
     }
+    
+    // 7. Analytics cleanup
+    this.analytics.trackEvent('dashboard-closed', {
+      timeSpent: Date.now() - this.startTime
+    });
   }
-}
-
-// Use Case 3: Performance Optimization
-@Component({
-  selector: 'app-optimized-list',
-  template: `...`,
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class OptimizedListComponent implements OnChanges {
-  @Input() items: Item[] = [];
-  processedItems: ProcessedItem[] = [];
   
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['items']) {
-      // ✅ Only reprocess when input actually changes
-      this.processedItems = this.processItems(changes['items'].currentValue);
+  private startTime = Date.now();
+  
+  private handleRealtimeUpdate(update: any): void {
+    console.log('Real-time update:', update);
+  }
+  
+  private checkForUpdates(): void {
+    console.log('Polling for updates...');
+  }
+  
+  private handleResize(): void {
+    if (this.chart) {
+      this.chart.resize();
     }
   }
   
-  private processItems(items: Item[]): ProcessedItem[] {
-    // Expensive computation only when needed
-    return items.map(item => this.transform(item));
+  private updateChart(stocks: Stock[]): void {
+    // Update chart with new data
+  }
+}
+
+interface Stock {
+  symbol: string;
+  price: number;
+  change: number;
+}
+```
+
+**THE #1 MEMORY LEAK MISTAKE - HTTP Subscriptions:**
+```typescript
+// ❌ WRONG - Memory leak!
+ngOnInit(): void {
+  this.userService.getUsers().subscribe(users => {
+    this.users = users;
+  });
+  // When component destroys, this subscription keeps running!
+  // Even though HTTP completes, the subscription is still in memory
+}
+
+// ✅ CORRECT - Pattern 1: takeUntil
+private destroy$ = new Subject<void>();
+
+ngOnInit(): void {
+  this.userService.getUsers()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(users => this.users = users);
+}
+
+ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
+
+// ✅ CORRECT - Pattern 2: async pipe (best for templates)
+users$ = this.userService.getUsers();
+// Template: <div *ngFor="let user of users$ | async">
+// No need to unsubscribe, async pipe handles it!
+
+// ✅ CORRECT - Pattern 3: Manual unsubscribe
+private subscription?: Subscription;
+
+ngOnInit(): void {
+  this.subscription = this.userService.getUsers()
+    .subscribe(users => this.users = users);
+}
+
+ngOnDestroy(): void {
+  this.subscription?.unsubscribe();
+}
+```
+
+**Common Memory Leak Sources:**
+1. ❌ RxJS subscriptions (Observables, Subjects)
+2. ❌ Event listeners (window, document, DOM events)
+3. ❌ Timers (setTimeout, setInterval)
+4. ❌ WebSocket/SSE connections
+5. ❌ Third-party libraries (charts, maps, editors)
+6. ❌ Store subscriptions (NgRx, Akita)
+7. ❌ Route subscriptions (if not using snapshot)
+
+---
+
+## **The Complete Sequence in Action**
+
+Here's what happens from creation to destruction:
+
+```typescript
+@Component({
+  selector: 'app-lifecycle-complete',
+  template: `
+    <h1>{{ title }}</h1>
+    <ng-content></ng-content>
+    <div #output>Output: {{ data }}</div>
+  `
+})
+export class LifecycleCompleteComponent implements 
+  OnChanges, OnInit, DoCheck, AfterContentInit, AfterContentChecked,
+  AfterViewInit, AfterViewChecked, OnDestroy {
+  
+  @Input() title = '';
+  @Input() data: any;
+  @ViewChild('output') output!: ElementRef;
+  @ContentChild(SomeComponent) content!: SomeComponent;
+  
+  constructor() {
+    console.log('0. Constructor - DI only');
+    // ❌ this.title is undefined here!
+    // ❌ this.output is undefined here!
+    // ❌ this.content is undefined here!
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log('1. ngOnChanges - Input properties changed');
+    // ✅ this.title is NOW available
+    // ❌ this.output is STILL undefined
+    // ❌ this.content is STILL undefined
+  }
+  
+  ngOnInit(): void {
+    console.log('2. ngOnInit - Component initialized');
+    // ✅ this.title is available
+    // ✅ this.data is available
+    // ❌ this.output is STILL undefined
+    // ❌ this.content is STILL undefined
+    // ✅✅✅ Make API calls here
+    // ✅✅✅ Set up subscriptions here
+  }
+  
+  ngDoCheck(): void {
+    console.log('3. ngDoCheck - Change detection ran');
+    // ⚠️ Runs VERY frequently - be careful!
+    // Use for custom change detection only
+  }
+  
+  ngAfterContentInit(): void {
+    console.log('4. ngAfterContentInit - Projected content ready');
+    // ✅ this.content is NOW available
+    // ❌ this.output is STILL undefined
+    // ✅ Access @ContentChild here
+  }
+  
+  ngAfterContentChecked(): void {
+    console.log('5. ngAfterContentChecked - Content checked');
+    // ⚠️ Runs after every check
+    // Avoid expensive operations
+  }
+  
+  ngAfterViewInit(): void {
+    console.log('6. ngAfterViewInit - View ready');
+    // ✅ this.output is NOW available!
+    // ✅✅✅ Initialize third-party libraries here
+    // ✅✅✅ Access DOM elements here
+    // ✅✅✅ Measure element dimensions here
+    console.log('Output element:', this.output.nativeElement.textContent);
+  }
+  
+  ngAfterViewChecked(): void {
+    console.log('7. ngAfterViewChecked - View checked');
+    // ⚠️ Runs after every check
+    // ⚠️⚠️⚠️ DON'T modify state here!
+  }
+  
+  ngOnDestroy(): void {
+    console.log('8. ngOnDestroy - Component destroyed');
+    // ✅✅✅ Cleanup EVERYTHING here
+    // ✅ Unsubscribe from observables
+    // ✅ Clear timers
+    // ✅ Remove event listeners
+    // ✅ Close WebSocket connections
+    // ✅ Dispose third-party libraries
   }
 }
 ```
 
-**Performance Optimization Tips:**
+**Execution Flow with Parent-Child:**
+```
+CREATION PHASE:
+Parent: constructor → ngOnChanges → ngOnInit → ngDoCheck → ngAfterContentInit → ngAfterContentChecked
+  ↓
+Child: constructor → ngOnChanges → ngOnInit → ngDoCheck → ngAfterContentInit → ngAfterContentChecked → ngAfterViewInit → ngAfterViewChecked
+  ↓
+Parent: ngAfterViewInit → ngAfterViewChecked
 
-1. **Avoid ngDoCheck and ngAfterViewChecked** - Called on every change detection
-2. **Use OnPush change detection** - Reduces checks to input changes only
-3. **Unsubscribe in ngOnDestroy** - Critical for preventing memory leaks
-4. **Don't change state in ngAfterViewChecked** - Causes infinite loops
+CHANGE DETECTION PHASE (repeated many times):
+Parent: ngDoCheck → ngAfterContentChecked
+  ↓
+Child: ngDoCheck → ngAfterContentChecked → ngAfterViewChecked
+  ↓
+Parent: ngAfterViewChecked
 
-**Pro Tip:** The most common mistake is forgetting `ngOnDestroy` cleanup. In large SPAs, this causes memory leaks that accumulate over time. Always use the **takeUntil pattern** with a Subject for automatic observable cleanup, or use the **async pipe** which handles subscription lifecycle automatically. Senior engineers look for this in code reviews.
+DESTRUCTION PHASE:
+Child: ngOnDestroy
+  ↓
+Parent: ngOnDestroy
+```
+
+---
+
+## **Quick Reference: When to Use Each Hook**
+
+| Hook | Frequency | Use For | Access Available |
+|------|-----------|---------|------------------|
+| **ngOnChanges** | On input change | React to input changes, compare old vs new | `@Input()` properties |
+| **ngOnInit** ✅ | Once | API calls, subscriptions, initialization | `@Input()` properties |
+| **ngDoCheck** ⚠️ | Every CD cycle | Custom change detection (use sparingly) | `@Input()` properties |
+| **ngAfterContentInit** | Once | Access projected content | `@ContentChild/Children` |
+| **ngAfterContentChecked** ⚠️ | Every CD cycle | React to content changes (avoid) | `@ContentChild/Children` |
+| **ngAfterViewInit** ✅ | Once | DOM access, third-party libs | `@ViewChild/Children` + DOM |
+| **ngAfterViewChecked** ⚠️ | Every CD cycle | React to view changes (avoid state changes) | `@ViewChild/Children` + DOM |
+| **ngOnDestroy** ✅✅✅ | Once | Cleanup (CRITICAL for memory leaks) | Everything |
+
+---
+
+## **Common Mistakes and Solutions**
+
+### **Mistake 1: Accessing @ViewChild in ngOnInit**
+```typescript
+// ❌ WRONG
+ngOnInit(): void {
+  console.log(this.viewChild.nativeElement); // undefined!
+}
+
+// ✅ CORRECT
+ngAfterViewInit(): void {
+  console.log(this.viewChild.nativeElement); // Works!
+}
+```
+
+### **Mistake 2: Forgetting to Unsubscribe**
+```typescript
+// ❌ WRONG - Memory leak
+ngOnInit(): void {
+  this.dataService.getData().subscribe(data => this.data = data);
+}
+
+// ✅ CORRECT
+private destroy$ = new Subject<void>();
+
+ngOnInit(): void {
+  this.dataService.getData()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(data => this.data = data);
+}
+
+ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
+```
+
+### **Mistake 3: Modifying State in ngAfterViewChecked**
+```typescript
+// ❌ WRONG - Causes ExpressionChangedAfterItHasBeenCheckedError
+ngAfterViewChecked(): void {
+  this.someProperty = newValue; // DON'T DO THIS!
+}
+
+// ✅ CORRECT - Defer to next cycle
+ngAfterViewChecked(): void {
+  setTimeout(() => {
+    this.someProperty = newValue;
+  });
+}
+```
+
+### **Mistake 4: Heavy Operations in ngDoCheck**
+```typescript
+// ❌ WRONG - Runs hundreds of times per second
+ngDoCheck(): void {
+  this.expensiveCalculation(); // Kills performance!
+}
+
+// ✅ CORRECT - Only when actually changed
+ngDoCheck(): void {
+  const currentHash = this.quickHash();
+  if (this.previousHash !== currentHash) {
+    this.expensiveCalculation();
+    this.previousHash = currentHash;
+  }
+}
+```
+
+---
+
+**Pro Tip:** In production Angular applications, the three most critical hooks are:
+
+1. **ngOnInit** - For initialization and data fetching
+2. **ngAfterViewInit** - For DOM access and third-party libraries
+3. **ngOnDestroy** - For cleanup (NEVER skip this for components with subscriptions)
+
+The hooks that run on every change detection cycle (ngDoCheck, ngAfterContentChecked, ngAfterViewChecked) should be avoided unless absolutely necessary. They can destroy performance in large applications. Always use `OnPush` change detection strategy and immutable data patterns when possible.
+
+**Memory Leak Detection:** In Chrome DevTools, take heap snapshots before and after navigating to/from your component multiple times. If memory keeps growing, you have a leak. Common culprits: unsubscribed Observables, event listeners, and third-party libraries not properly disposed.
 
 ---
 
@@ -1253,6 +1498,453 @@ ngOnInit() { this.totalPrice = this.calculate(); }
 ```
 
 **Pro Tip:** The biggest performance mistake candidates make is using **method calls in templates** like `{{ getData() }}`. This executes on every change detection cycle (potentially hundreds of times per second). Instead, use **pure pipes** for transformations or **memoize values** in component properties. For complex UIs, combine with `ChangeDetectionStrategy.OnPush` and immutable data patterns. In production apps with hundreds of components, this optimization can reduce CPU usage by 70%+.
+
+---
+
+### Question: Explain content projection and how Angular internally handles it.
+
+**Answer:**
+
+Content projection is Angular's mechanism for creating flexible, reusable components by allowing parent components to inject custom content into child components. But it's not just "passing HTML" - Angular has a sophisticated internal pipeline involving template parsing, view hierarchy management, and careful change detection coordination.
+
+**For the complete internal pipeline covering compilation, structural differences between `<ng-content>`, `<ng-container>`, and `<ng-template>`, multi-slot projection, change detection context, real-world reusable component design patterns, common pitfalls, and hybrid approaches with dynamic components, see [Content Projection Deep Dive](./content-projection.md)**
+
+**Quick Overview:**
+
+```typescript
+// Simple projection
+@Component({
+  selector: 'app-card',
+  template: `
+    <div class="card">
+      <ng-content></ng-content>
+    </div>
+  `
+})
+export class CardComponent {}
+
+// Usage
+<app-card>
+  <h1>Card Title</h1>
+  <p>Card content</p>
+</app-card>
+```
+
+**Key Concepts:**
+
+1. **`<ng-content>`** - Projection slot (compiled into projection instruction, no DOM node)
+2. **`<ng-container>`** - Logical grouper (doesn't create DOM, can have directives)
+3. **`<ng-template>`** - Template definition (not rendered by default)
+4. **Multi-slot projection** - Use CSS selectors: `<ng-content select="[header]">`
+5. **Change detection context** - Projected content belongs to parent's CD tree
+6. **Bindings** - Projected content can only access parent's properties
+
+**Critical Rule:**
+Projected content is compiled and change-detected in the **parent's context**, not the host component's context. This affects OnPush strategies and data flow.
+
+**Real-World Use Cases:**
+- Reusable modal components with custom header/body/footer
+- Table components with customizable columns and rows
+- Layout components with flexible content areas
+- Card components with varied content structures
+
+**Common Pitfall:**
+```typescript
+// ❌ Host with OnPush might not update projected content
+@Component({
+  template: `<ng-content></ng-content>`,
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class HostComponent {}
+
+// Solution: Ensure parent's CD runs or use Default strategy
+```
+
+**For detailed explanations including:**
+- Internal compilation and AST generation
+- Content distribution algorithms
+- Managing lifecycle with hybrid projection + dynamic components
+- Real bugs and their fixes
+- Performance implications
+
+**See the [Content Projection Deep Dive](./content-projection.md)**
+
+---
+
+### Question: What are the real technical causes of Angular performance degradation and how do you fix them?
+
+**Answer:**
+
+Angular apps don't "just get slow" - they're made slow by specific, identifiable developer mistakes. Performance optimization requires understanding Angular's internals and applying systematic, measurable fixes.
+
+**For comprehensive coverage of 10+ performance killers with detailed analysis, profiling techniques, and a complete case study optimizing 10,000 records with real-time filtering, see [Performance Optimization Deep Dive](./performance-optimization.md)**
+
+**Key Performance Issues:**
+
+1. **Change Detection Bloat** - Zone.js triggers CD on every event; fix with OnPush, detach, runOutsideAngular
+2. **DOM Rendering Inefficiencies** - Missing trackBy causes full re-renders; fix with proper trackBy functions
+3. **Inefficient RxJS Patterns** - Wrong operators, no unsubscribe; fix with switchMap, debounce, takeUntil
+4. **Memory Leaks** - Unsubscribed observables, event listeners; fix with proper cleanup in ngOnDestroy
+5. **No Lazy Loading** - Everything loaded upfront; fix with route-based code splitting
+6. **Bundle Size Bloat** - Heavy libraries, no tree-shaking; fix with analysis and alternatives
+7. **Template Binding Performance** - Method calls in templates; fix with memoization and pure pipes
+8. **Large Lists** - 10k+ DOM nodes; fix with CDK Virtual Scroll (99.85% DOM reduction)
+9. **Zone.js Overhead** - CD on every async operation; fix by running outside Angular zone
+10. **Third-Party Library Bloat** - Unnecessary dependencies; fix with auditing and replacement
+
+**Quick Example - Virtual Scroll:**
+
+```typescript
+// ❌ BAD: 10,000 DOM nodes
+<div *ngFor="let item of items">{{ item.name }}</div>
+// Result: 8s initial render, 800MB memory
+
+// ✅ GOOD: ~15 DOM nodes (only visible items)
+<cdk-virtual-scroll-viewport [itemSize]="50">
+  <div *cdkVirtualFor="let item of items; trackBy: trackById">
+    {{ item.name }}
+  </div>
+</cdk-virtual-scroll-viewport>
+// Result: 150ms initial render, 120MB memory
+// Improvement: 98% faster, 85% less memory
+```
+
+**Profiling Tools:**
+- Chrome DevTools Performance tab
+- Angular DevTools Profiler
+- Lighthouse for Core Web Vitals
+- `webpack-bundle-analyzer` for bundle analysis
+- Custom performance markers
+
+**Real-World Impact:**
+- Change detection: 5000 calls/sec → 50 calls/sec (99% reduction)
+- Bundle size: 2.5MB → 800KB (68% reduction)
+- Initial render: 8s → 150ms (98% faster)
+- Memory usage: 800MB → 120MB (85% reduction)
+- Frame rate: 8 FPS → 60 FPS (650% improvement)
+
+**For the complete practical case study including:**
+- Step-by-step optimization process for 10,000 records
+- Exact profiling techniques and metrics
+- Web Worker integration
+- IndexedDB for large datasets
+- Production deployment decision with monitoring
+- Before/after measurements
+
+**See the [Performance Optimization Deep Dive](./performance-optimization.md)**
+
+---
+
+### Question: Explain how NgRx integrates with Angular - walk through the complete data flow from dispatch to UI update.
+
+**Answer:**
+
+NgRx isn't just "Redux for Angular" - it's a sophisticated reactive state management system deeply integrated with Angular's change detection, RxJS observables, and dependency injection. Understanding the architecture requires tracing the complete internal pipeline.
+
+**For the complete architectural deep dive covering action lifecycle internals, reducer mechanics, selector memoization, effects integration, change detection coordination, design trade-offs, library comparisons, and race condition handling, see [NgRx State Management Deep Dive](./ngrx-state-management.md)**
+
+**Complete Data Flow:**
+
+```typescript
+// 1. Component dispatches action
+store.dispatch(loadUser({ userId: 123 }))
+   ↓
+// 2. ActionsSubject.next(action)
+   ↓
+// 3. Action flows to two parallel pipelines:
+   ├─→ Effects (side effects)
+   │   └→ HTTP call → dispatch success/failure
+   └─→ ScannedActionsSubject (state reduction)
+       ↓
+// 4. withLatestFrom(reducerManager) - combines [action, reducer]
+       ↓
+// 5. scan() executes: newState = reducer(oldState, action)
+       ↓
+// 6. New state emitted to state$ stream
+       ↓
+// 7. Selectors subscribed to state$ check memoization
+       ↓
+// 8. If value changed, emit to component
+       ↓
+// 9. Async pipe calls cdr.markForCheck()
+       ↓
+// 10. Component updates (OnPush bypassed)
+```
+
+**Why Immutability is Critical:**
+
+```typescript
+// ✅ Immutable update (O(1) reference check)
+const newState = { ...oldState, count: 2 };
+if (oldState !== newState) {  // Instant!
+  // Trigger change detection
+}
+
+// ❌ Mutable update (would need O(n) deep equality)
+oldState.count = 2;
+if (deepEqual(oldState, oldState)) {  // Expensive!
+  // Never triggers - same reference
+}
+```
+
+**Selector Memoization:**
+
+```typescript
+// Memoized selector caches results
+export const selectExpensiveData = createSelector(
+  selectUsers,
+  selectFilters,
+  (users, filters) => {
+    console.log('Computing...'); // Only when inputs change!
+    return expensiveCalculation(users, filters);
+  }
+);
+
+// Without memoization: runs every CD cycle (50-100ms)
+// With memoization: runs only on input change (0ms cached)
+```
+
+**Effects and Race Conditions:**
+
+```typescript
+// ❌ BAD: mergeMap allows race conditions
+searchProducts$ = createEffect(() =>
+  this.actions$.pipe(
+    ofType(searchProducts),
+    mergeMap(action => this.api.search(action.query))
+    // User types 'abc' quickly:
+    // Request 'a', 'ab', 'abc' all fire
+    // Responses arrive out of order
+    // UI shows wrong results!
+  )
+);
+
+// ✅ GOOD: switchMap cancels previous
+searchProducts$ = createEffect(() =>
+  this.actions$.pipe(
+    ofType(searchProducts),
+    debounceTime(300),      // Wait for typing to stop
+    switchMap(action => this.api.search(action.query))
+    // Only final request ('abc') completes
+  )
+);
+```
+
+**When NgRx is the WRONG Choice:**
+
+1. **Simple CRUD** - 290 lines of boilerplate vs 50 lines with service
+2. **Component-local state** - UI state (accordions, modals) doesn't need global store
+3. **Small teams** - Learning curve + boilerplate overhead
+4. **No shared state** - If components don't share data, service is simpler
+
+**NgRx vs Alternatives:**
+
+| Feature | NgRx | Akita | NGXS |
+|---------|------|-------|------|
+| Boilerplate | High | Low | Medium |
+| Learning Curve | Steep | Moderate | Moderate |
+| Community | Largest | Small | Small |
+| Best For | Large apps | Small/medium | Medium apps |
+
+**Managing Boilerplate:**
+
+```typescript
+// Facade pattern hides complexity
+@Injectable({ providedIn: 'root' })
+export class UserFacade {
+  user$ = this.store.select(selectUser);
+  loading$ = this.store.select(selectLoading);
+  
+  loadUser(id: number): void {
+    this.store.dispatch(loadUser({ id }));
+  }
+}
+
+// Component (much cleaner!)
+export class UserComponent {
+  constructor(public facade: UserFacade) {}
+  
+  ngOnInit(): void {
+    this.facade.loadUser(123);
+  }
+}
+```
+
+**For complete coverage including:**
+- Internal Store/ActionsSubject/ReducerManager implementation
+- Why immutability enables OnPush optimization
+- Selector memoization algorithm internals
+- Effect error handling patterns
+- Decision framework (when to use/not use)
+- Complete NgRx vs Akita vs NGXS comparison
+- Boilerplate reduction strategies
+- Race condition fixes with exact RxJS operators
+
+**See the [NgRx State Management Deep Dive](./ngrx-state-management.md)**
+
+---
+
+### Question: How do you design and structure production-grade tests for Angular applications?
+
+**Answer:**
+
+Angular testing isn't "just use Jasmine and Karma" - it's a sophisticated framework with TestBed creating isolated testing modules, ComponentFixture managing change detection, and various async testing strategies. Production-grade testing requires understanding internal mechanics, not just writing specs.
+
+**For comprehensive coverage of TestBed internals, standalone component testing, async patterns, mocking strategies, flaky test prevention, OnPush testing, and a complete real-world example with HTTP + RxJS, see [Testing Strategy Deep Dive](./testing-strategy.md)**
+
+**TestBed Internal Flow:**
+
+```typescript
+// When you write:
+TestBed.configureTestingModule({ declarations: [MyComponent] });
+fixture = TestBed.createComponent(MyComponent);
+
+// Internal flow:
+1. Store declarations/imports/providers
+2. Create dynamic @NgModule
+3. Compile module with TestingCompiler
+4. Create NgModuleRef instance
+5. Get ComponentFactory
+6. Create ComponentRef with module's injector
+7. Wrap in ComponentFixture
+8. fixture.detectChanges() → NgZone.run() → CD
+```
+
+**Async Testing Strategies:**
+
+```typescript
+// ❌ FAILS: Synchronous assertion on async operation
+it('bad', () => {
+  component.loadData();  // Async HTTP call
+  expect(component.data).toBeDefined();  // FAILS!
+});
+
+// ✅ fakeAsync + tick (synchronous control)
+it('good', fakeAsync(() => {
+  component.loadData();
+  tick();  // Advance virtual time
+  expect(component.data).toBeDefined();
+}));
+
+// ✅ async + whenStable (wait for real async)
+it('also good', async(() => {
+  component.loadData();
+  fixture.whenStable().then(() => {
+    expect(component.data).toBeDefined();
+  });
+}));
+```
+
+**When tick/flush/flushMicrotasks Fail:**
+
+```typescript
+// tick() - Specific time advancement
+tick(1000);  // Advance 1 second
+
+// flush() - Execute ALL pending timers
+flush();  // ❌ Fails with infinite intervals!
+
+// flushMicrotasks() - Execute only Promises
+flushMicrotasks();  // ❌ Doesn't execute setTimeout!
+```
+
+**Mocking Strategy:**
+
+```typescript
+// ✅ DO mock: External dependencies
+// - HTTP (use HttpTestingController)
+// - Complex child components
+// - Time-dependent code (fakeAsync)
+
+// ❌ DON'T mock: Simple utilities, pure pipes, business logic
+
+// HttpTestingController (best for HTTP)
+it('should handle HTTP', fakeAsync(() => {
+  component.loadData();
+  
+  const req = httpMock.expectOne('/api/data');
+  req.flush({ data: 'test' });
+  tick();
+  
+  expect(component.data).toBe('test');
+}));
+```
+
+**Flaky Test Prevention:**
+
+```typescript
+// Common causes:
+1. Timing issues → Use fakeAsync + tick
+2. Uncontrolled CD → Explicit detectChanges()
+3. Shared state → Clean up in afterEach()
+4. Random data → Use deterministic fixtures
+5. Missing httpMock.verify() → Always verify
+
+// Checklist:
+✅ fakeAsync/tick instead of real timers
+✅ Explicit change detection
+✅ Clean side effects (localStorage, etc.)
+✅ Verify HTTP requests in afterEach()
+✅ Deterministic test data
+✅ Isolate tests (no global state)
+```
+
+**Testing OnPush Components:**
+
+```typescript
+// OnPush blocks CD unless:
+1. @Input reference changes
+2. Event fires in component
+3. Async pipe emits
+4. markForCheck() called
+
+// Solution in tests:
+fixture.componentRef.markForCheck();
+fixture.detectChanges();
+```
+
+**Complete Real-World Example:**
+
+Component with HTTP, RxJS operators (debounceTime, switchMap, catchError), and view updates - complete test suite covering:
+- Debouncing (300ms)
+- Filtering (<3 chars)
+- Duplicate query skipping
+- Request cancellation (switchMap)
+- Loading states
+- Error handling
+- Results display
+- Memory leak prevention
+- Full integration flow
+
+**Test Coverage Reality:**
+
+**Would I trust 100% coverage? NO.**
+
+**Why:**
+1. Coverage ≠ Quality (can execute code without verifying anything)
+2. Missing edge cases (divide by zero, null, etc.)
+3. Integration gaps (units work, but together?)
+4. Can't test UX, performance, security, real users
+
+**What gives confidence:**
+- Test pyramid (60% unit, 30% integration, 10% E2E)
+- Critical path coverage (auth, payment, data submission)
+- Mutation testing (detect weak assertions)
+- Production monitoring (real user metrics)
+- Target: 80-90% coverage with strategic focus
+
+**For complete coverage including:**
+- TestBed/ComponentFixture internal implementation
+- Standalone vs module-based testing differences
+- fakeAsync internals and Zone.js behavior
+- Complete mocking strategies with trade-offs
+- Flaky test causes and prevention checklist
+- detectChanges() vs autoDetectChanges()
+- OnPush testing strategies
+- Full HTTP + RxJS component test suite
+- Critical analysis of test coverage
+
+**See the [Testing Strategy Deep Dive](./testing-strategy.md)**
 
 ---
 

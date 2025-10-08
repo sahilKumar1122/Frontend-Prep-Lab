@@ -1,8 +1,8 @@
 # Frontend Interview Preparation 🚀
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![GitHub Stars](https://img.shields.io/github/stars/sahilKumar1122/frontend-interview-prep)
-![GitHub Forks](https://img.shields.io/github/forks/sahilKumar1122/frontend-interview-prep)
+![GitHub Stars](https://img.shields.io/github/stars/sahilKumar1122/Frontend-Prep-Lab)
+![GitHub Forks](https://img.shields.io/github/forks/sahilKumar1122/Frontend-Prep-Lab)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
 A comprehensive collection of frontend interview questions, answers, and resources to help you ace your next interview.
