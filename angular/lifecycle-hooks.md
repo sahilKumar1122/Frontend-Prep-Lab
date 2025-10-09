@@ -19,6 +19,53 @@ Angular's component lifecycle consists of **8 main lifecycle hooks** that fire i
 
 ---
 
+## **Visual Overview: Component Lifecycle Sequence**
+
+```mermaid
+sequenceDiagram
+    participant Angular
+    participant Component
+    participant View
+    participant Content
+    
+    Angular->>Component: constructor()
+    Note over Component: DI only<br/>@Input undefined
+    
+    Angular->>Component: ngOnChanges(changes)
+    Note over Component: @Input available<br/>Fires on every input change
+    
+    Angular->>Component: ngOnInit()
+    Note over Component: Initialize component<br/>API calls, subscriptions
+    
+    loop Every Change Detection
+        Angular->>Component: ngDoCheck()
+        Note over Component: Custom change detection<br/>Use sparingly!
+        
+        Angular->>Content: ngAfterContentInit()
+        Note over Content: @ContentChild available<br/>Once only
+        
+        Angular->>Content: ngAfterContentChecked()
+        Note over Content: After content checked<br/>Every CD cycle
+        
+        Angular->>View: ngAfterViewInit()
+        Note over View: @ViewChild available<br/>DOM ready, Once only
+        
+        Angular->>View: ngAfterViewChecked()
+        Note over View: After view checked<br/>Every CD cycle
+    end
+    
+    Angular->>Component: ngOnDestroy()
+    Note over Component: CLEANUP!<br/>Unsubscribe, clear timers
+```
+
+**Critical Sequence Facts:**
+1. ✅ **constructor** → **ngOnChanges** → **ngOnInit** (initialization)
+2. ⚠️ **ngDoCheck** runs on EVERY change detection (use carefully!)
+3. 🔄 **Content hooks** fire before **View hooks**
+4. 🧹 **ngOnDestroy** is your last chance to cleanup (memory leaks happen here!)
+
+---
+
 ## Individual Hook Deep Dives
 
 ### **1. ngOnChanges()**

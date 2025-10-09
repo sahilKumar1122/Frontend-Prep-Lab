@@ -1,3 +1,14 @@
+---
+title: "Angular Fundamentals"
+description: "Deep dive into core Angular concepts including components, modules, and dependency injection"
+category: "Angular"
+difficulty: "Beginner to Intermediate"
+tags: ["angular", "fundamentals", "components", "modules", "dependency-injection"]
+readingTime: "25 min"
+lastUpdated: "2025-01-09"
+relatedTopics: ["change-detection", "lifecycle-hooks", "rxjs-operators"]
+---
+
 # Angular Fundamentals
 
 ## Table of Contents
@@ -197,6 +208,80 @@ Angular uses a **hierarchical, module-based architecture** with distinct layers:
 3. **Services** - Business logic and state
 4. **Directives** - DOM manipulation
 5. **Pipes** - Data transformation
+
+---
+
+## **Visual Overview: Angular Architecture**
+
+```mermaid
+graph TB
+    subgraph "Angular Application"
+        Root[Root Module<br/>AppModule]
+        
+        subgraph "Core Layer"
+            Services[Services<br/>Business Logic]
+            Guards[Route Guards]
+            Interceptors[HTTP Interceptors]
+        end
+        
+        subgraph "Feature Modules"
+            Feature1[Feature Module 1<br/>Products]
+            Feature2[Feature Module 2<br/>Orders]
+            Feature3[Feature Module 3<br/>Admin]
+        end
+        
+        subgraph "Shared"
+            Components[Reusable Components<br/>Button, Modal, Card]
+            Directives[Custom Directives<br/>Highlight, Tooltip]
+            Pipes[Custom Pipes<br/>FormatDate, Truncate]
+        end
+        
+        subgraph "Component Tree"
+            RootComp[Root Component<br/>AppComponent]
+            Parent1[Parent Component]
+            Child1[Child Component 1]
+            Child2[Child Component 2]
+        end
+    end
+    
+    Root --> Core Layer
+    Root --> Feature Modules
+    Root --> Shared
+    Root --> RootComp
+    
+    RootComp --> Parent1
+    Parent1 --> Child1
+    Parent1 --> Child2
+    
+    Feature1 -.->|Uses| Services
+    Feature2 -.->|Uses| Services
+    Feature3 -.->|Uses| Services
+    
+    Feature1 -.->|Imports| Shared
+    Feature2 -.->|Imports| Shared
+    Feature3 -.->|Imports| Shared
+    
+    style Root fill:#f9f,stroke:#333,stroke-width:4px
+    style Services fill:#bbf,stroke:#333,stroke-width:2px
+    style RootComp fill:#bfb,stroke:#333,stroke-width:2px
+    style Shared fill:#ffb,stroke:#333,stroke-width:2px
+```
+
+**Architectural Layers:**
+- 🎯 **Root Module:** Bootstraps application, imports core modules
+- 🧱 **Core Module:** Singleton services (AuthService, LoggerService, etc.)
+- 🔄 **Feature Modules:** Lazy-loaded, domain-specific functionality
+- 🔧 **Shared Module:** Reusable UI components, directives, pipes
+- 🌳 **Component Tree:** Hierarchical view structure
+
+**Benefits:**
+- ✅ **Modularity:** Clear separation of concerns
+- ✅ **Lazy Loading:** Load features on-demand (faster initial load)
+- ✅ **Reusability:** Shared components reduce duplication
+- ✅ **Maintainability:** Easy to locate and update code
+- ✅ **Testability:** Isolated modules easier to test
+
+---
 
 **Architecture Layers:**
 

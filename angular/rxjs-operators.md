@@ -20,6 +20,43 @@ Let's dissect these operators at the mechanical level. These aren't just "differ
 
 ---
 
+## **Visual Guide: RxJS Operator Selection**
+
+```mermaid
+graph TD
+    Start{What do you need?}
+    
+    Start -->|Flatten inner observables| Flatten{Concurrency?}
+    Start -->|Transform values| Transform[map, pluck, mapTo]
+    Start -->|Filter values| Filter[filter, take, skip]
+    Start -->|Combine streams| Combine{How?}
+    
+    Flatten -->|Cancel previous| SwitchMap[switchMap<br/>✅ Search, Navigation<br/>❌ File uploads]
+    Flatten -->|Run all parallel| MergeMap[mergeMap<br/>✅ Multiple HTTP calls<br/>❌ Order matters]
+    Flatten -->|Queue sequential| ConcatMap[concatMap<br/>✅ Order matters<br/>❌ Need speed]
+    Flatten -->|Ignore while busy| ExhaustMap[exhaustMap<br/>✅ Login, Save<br/>❌ All actions matter]
+    
+    Combine -->|Latest from all| CombineLatest[combineLatest<br/>Form validation]
+    Combine -->|Wait for all| ForkJoin[forkJoin<br/>Parallel requests]
+    Combine -->|Pair by index| Zip[zip<br/>Sync streams]
+    
+    style SwitchMap fill:#9f9,stroke:#333,stroke-width:2px
+    style MergeMap fill:#ff9,stroke:#333,stroke-width:2px
+    style ConcatMap fill:#9ff,stroke:#333,stroke-width:2px
+    style ExhaustMap fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+**Quick Selection Guide:**
+| Scenario | Operator | Why |
+|----------|----------|-----|
+| **Search autocomplete** | `switchMap` | Cancel old searches |
+| **Uploading multiple files** | `mergeMap` | Parallel uploads |
+| **Sequential API calls** | `concatMap` | Maintain order |
+| **Save button spam** | `exhaustMap` | Ignore extra clicks |
+| **Form validation** | `combineLatest` | Wait for all fields |
+
+---
+
 ## **switchMap - The Canceller**
 
 ### **How It Works Internally**

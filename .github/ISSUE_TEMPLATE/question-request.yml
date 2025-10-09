@@ -1,0 +1,90 @@
+name: 📝 Question Request
+description: Suggest a new interview question to be added
+title: "[QUESTION] "
+labels: ["question-request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing! Help us add valuable interview questions.
+
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework/Technology
+      description: Which technology does this question belong to?
+      options:
+        - Angular
+        - React
+        - JavaScript
+        - TypeScript
+        - HTML/CSS
+        - System Design
+        - Testing
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty Level
+      description: How difficult is this question?
+      options:
+        - 🟢 Easy (Junior level)
+        - 🟡 Medium (Mid-level)
+        - 🔴 Hard (Senior level)
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What is the interview question?
+      placeholder: "Example: What is the difference between OnPush and Default change detection?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: answer
+    attributes:
+      label: Suggested Answer (Optional)
+      description: If you have a good answer, share it here
+      placeholder: |
+        Provide a detailed answer with:
+        - Clear explanation
+        - Code examples
+        - Real-world use cases
+        - Common pitfalls
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Why is this important?
+      description: Why should this question be included?
+      placeholder: "This question is commonly asked in senior Angular interviews and tests understanding of..."
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source (Optional)
+      description: Where did you encounter this question?
+      placeholder: "Company interview, Online resource, etc."
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Contribution Guidelines
+      description: By submitting this question, you agree to
+      options:
+        - label: I have searched existing questions to avoid duplicates
+          required: true
+        - label: This is a genuine interview question
+          required: true
+        - label: I'm willing to help review and improve the answer
+          required: false
+

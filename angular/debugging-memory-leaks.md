@@ -25,6 +25,61 @@ This is a production crisis requiring systematic forensic analysis, not guesswor
 
 ---
 
+## **Visual Overview: Memory Leak Lifecycle**
+
+```mermaid
+graph TD
+    Component[Component Created]
+    
+    Component --> Sub1[Create Subscription]
+    Component --> Timer1[Create Timer]
+    Component --> Event1[Add Event Listener]
+    Component --> WS1[Open WebSocket]
+    Component --> Lib1[Initialize Library]
+    
+    Sub1 --> Use[Component Used]
+    Timer1 --> Use
+    Event1 --> Use
+    WS1 --> Use
+    Lib1 --> Use
+    
+    Use --> Destroy{Component Destroyed}
+    
+    Destroy -->|❌ No Cleanup| Leak1[Subscription Still Active]
+    Destroy -->|❌ No Cleanup| Leak2[Timer Still Running]
+    Destroy -->|❌ No Cleanup| Leak3[Listener Still Attached]
+    Destroy -->|❌ No Cleanup| Leak4[WebSocket Still Open]
+    Destroy -->|❌ No Cleanup| Leak5[Library Not Destroyed]
+    
+    Leak1 --> Memory[Memory Leak!<br/>Component Can't be GC'd<br/>Memory grows over time]
+    Leak2 --> Memory
+    Leak3 --> Memory
+    Leak4 --> Memory
+    Leak5 --> Memory
+    
+    Destroy -->|✅ Cleanup| Clean1[Unsubscribe]
+    Destroy -->|✅ Cleanup| Clean2[Clear Timer]
+    Destroy -->|✅ Cleanup| Clean3[Remove Listener]
+    Destroy -->|✅ Cleanup| Clean4[Close WebSocket]
+    Destroy -->|✅ Cleanup| Clean5[Destroy Library]
+    
+    Clean1 --> GC[Garbage Collected ✅<br/>Memory freed]
+    Clean2 --> GC
+    Clean3 --> GC
+    Clean4 --> GC
+    Clean5 --> GC
+    
+    style Memory fill:#f66,stroke:#333,stroke-width:3px
+    style GC fill:#9f9,stroke:#333,stroke-width:3px
+```
+
+**Critical Understanding:**
+- 🔴 **Without cleanup:** Component reference kept in memory → Can't be GC'd → Memory grows
+- 🟢 **With cleanup:** All references removed → GC can free memory
+- ⚠️ **Real Impact:** 100 component creates/destroys without cleanup = 100x memory usage!
+
+---
+
 ## Detection and Reproduction
 
 ### **Step 1: Gather Evidence from Production**

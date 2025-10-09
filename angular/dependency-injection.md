@@ -199,6 +199,43 @@ export class UserProfileComponent {
 
 Angular has TWO injector hierarchies that work together:
 
+#### **Visual Representation: DI Hierarchy**
+
+```mermaid
+graph TD
+    Platform[Platform Injector<br/>providedIn: 'platform'<br/>Shared across apps]
+    Root[Root Injector<br/>providedIn: 'root'<br/>App singleton]
+    Module[Module Injector<br/>Lazy-loaded modules]
+    Component[Component Injector<br/>Component providers]
+    Directive[Directive Injector<br/>Directive providers]
+    
+    Platform --> Root
+    Root --> Module
+    Module --> Component
+    Component --> Directive
+    
+    Search{Dependency<br/>Resolution}
+    Search -->|1. Check| Directive
+    Search -->|2. Not found| Component
+    Search -->|3. Not found| Module
+    Search -->|4. Not found| Root
+    Search -->|5. Not found| Platform
+    Search -->|6. Not found| Error[Throw Error:<br/>NullInjectorError]
+    
+    style Platform fill:#f9f,stroke:#333,stroke-width:2px
+    style Root fill:#ff9,stroke:#333,stroke-width:2px
+    style Component fill:#9ff,stroke:#333,stroke-width:2px
+    style Error fill:#f66,stroke:#333,stroke-width:2px
+```
+
+**Key Points:**
+1. 🔍 **Resolution Order:** Starts at requesting location → walks up tree → Root → Platform
+2. ❌ **NullInjectorError:** Thrown when dependency not found anywhere
+3. ✅ **Most Services:** Use `providedIn: 'root'` for singleton behavior
+4. 📦 **Component Providers:** Create new instance per component (careful with state!)
+
+---
+
 ```typescript
 /**
  * MODULE INJECTOR HIERARCHY

@@ -1,3 +1,14 @@
+---
+title: "Angular Routing & Navigation"
+description: "Master Angular Router including guards, lazy loading, and nested routes"
+category: "Angular"
+difficulty: "Intermediate"
+tags: ["angular", "routing", "guards", "lazy-loading", "navigation"]
+readingTime: "25 min"
+lastUpdated: "2025-01-09"
+relatedTopics: ["fundamentals", "modern-angular-features", "performance-optimization"]
+---
+
 # Angular Routing & Navigation
 
 ## Table of Contents
@@ -16,6 +27,56 @@
 **Answer:**
 
 The **Angular Router** enables navigation between views, lazy loading, route guards, and complex routing patterns. It's a core part of building SPAs.
+
+---
+
+## **Visual Overview: Navigation Flow**
+
+```mermaid
+graph TD
+    Nav[User Navigation<br/>Click Link / URL Change]
+    
+    Nav --> Router[Angular Router]
+    Router --> Match{Match Route?}
+    
+    Match -->|No| NotFound[404 Page]
+    Match -->|Yes| Guards{Route Guards}
+    
+    Guards --> CanActivate{CanActivate?}
+    CanActivate -->|False| Block[Block Navigation<br/>Show message/redirect]
+    CanActivate -->|True| CanLoad{CanLoad?}
+    
+    CanLoad -->|False| Block
+    CanLoad -->|True| Resolve[Resolvers<br/>Pre-fetch Data]
+    
+    Resolve --> Load{Lazy Load?}
+    Load -->|Yes| LoadModule[Download Module<br/>On-demand]
+    Load -->|No| Activate[Activate Component]
+    
+    LoadModule --> Activate
+    Activate --> Render[Render Component<br/>Update DOM]
+    
+    Render --> Leave{User Leaves?}
+    Leave -->|Yes| CanDeactivate{CanDeactivate?}
+    CanDeactivate -->|True| Destroy[Destroy Component<br/>ngOnDestroy]
+    CanDeactivate -->|False| Stay[Stay on Page<br/>Unsaved changes?]
+    
+    style Block fill:#f66,stroke:#333,stroke-width:2px
+    style Render fill:#9f9,stroke:#333,stroke-width:2px
+    style LoadModule fill:#ff9,stroke:#333,stroke-width:2px
+```
+
+**Navigation Lifecycle:**
+1. 🔗 **URL Change** - User clicks link or types URL
+2. 🔍 **Route Matching** - Router finds matching route configuration
+3. 🛡️ **Guards Check** - Security and access control (CanActivate, CanLoad)
+4. 📦 **Data Resolution** - Pre-fetch required data (Resolvers)
+5. 📥 **Lazy Loading** - Download module if needed (reduces initial bundle)
+6. ✅ **Component Activation** - Create and render component
+7. 🚪 **Exit Guards** - Prevent leaving with unsaved changes (CanDeactivate)
+8. 🗑️ **Cleanup** - Destroy component, free resources
+
+---
 
 **Complete Routing Setup:**
 

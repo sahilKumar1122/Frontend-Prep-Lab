@@ -1,0 +1,57 @@
+name: 🐛 Bug Report
+description: Report an error or issue with content
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue! This helps us maintain high-quality content.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What type of issue is this?
+      options:
+        - Incorrect answer/explanation
+        - Broken code example
+        - Broken link
+        - Typo/Grammar
+        - Outdated information
+        - Missing information
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Which file and section has the issue?
+      placeholder: "Example: angular/change-detection.md - OnPush section"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue clearly
+      placeholder: "The example code for OnPush change detection has a syntax error on line 45..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior/Content
+      description: What should it be?
+      placeholder: "The code should use markForCheck() instead of detectChanges()"
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Fix (Optional)
+      description: If you know how to fix it, share your suggestion
+

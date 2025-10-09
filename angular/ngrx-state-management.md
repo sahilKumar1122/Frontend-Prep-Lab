@@ -25,6 +25,52 @@ NgRx isn't just "Redux for Angular" - it's a sophisticated reactive state manage
 
 ---
 
+## **Visual Overview: NgRx Data Flow**
+
+```mermaid
+graph TD
+    Component[Component] -->|1. Dispatch| Action[Action<br/>loadUsers]
+    
+    Action -->|2. Flows to| Effects[Effects]
+    Action -->|3. Flows to| Reducer[Reducer]
+    
+    Effects -->|4. Side Effect| API[HTTP API Call]
+    API -->|5. Success| Action2[Action<br/>loadUsersSuccess]
+    API -->|5. Error| Action3[Action<br/>loadUsersFailure]
+    
+    Action2 --> Reducer
+    Action3 --> Reducer
+    
+    Reducer -->|6. Pure Function| NewState[New Immutable State]
+    NewState -->|7. Store Update| Store[(Store)]
+    
+    Store -->|8. Notify| Selector[Selector<br/>Memoized]
+    Selector -->|9. If Changed| Component
+    Component -->|10. Async Pipe| Template[Template Updates]
+    
+    style Action fill:#f9f,stroke:#333,stroke-width:2px
+    style Effects fill:#ff9,stroke:#333,stroke-width:2px
+    style Reducer fill:#9ff,stroke:#333,stroke-width:2px
+    style Store fill:#9f9,stroke:#333,stroke-width:2px
+```
+
+**Key Flow Points:**
+1. 🎯 **Component dispatches** - Action describes what happened
+2. 🔀 **Action splits** - Goes to both Reducer (state) and Effects (side effects)
+3. 🔧 **Reducer transforms** - Pure function creates new state
+4. 🌊 **Store emits** - New state flows through observable stream
+5. 🎭 **Selector filters** - Memoized selector checks if value changed
+6. 🔄 **Component updates** - Async pipe triggers change detection
+7. 🎨 **UI re-renders** - Only affected components update
+
+**Why This Architecture:**
+- ✅ **Predictable:** Unidirectional data flow
+- ✅ **Debuggable:** Action history visible in DevTools
+- ✅ **Testable:** Pure functions easy to test
+- ✅ **Performant:** Memoization prevents unnecessary calculations
+
+---
+
 ## Action Lifecycle Internals
 
 ### **From store.dispatch() to Reducer Execution**

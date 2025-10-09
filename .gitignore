@@ -33,3 +33,19 @@ build/
 dev-to-article.md
 PROMOTION_GUIDE.md
 SOCIAL_MEDIA_POSTS.md
+
+# Internal project management files (development tracking, not for users)
+ACCESSIBILITY_IMPROVEMENTS_SUMMARY.md
+COMPARISON_SUMMARY.md
+GAP_ANALYSIS.md
+IMPLEMENTATION_STATUS.md
+NEXT_STEPS.md
+PHASE_1_COMPLETION.md
+SIMPLIFICATION_SUMMARY.md
+SINGLE_PAGE_IMPLEMENTATION_SUMMARY.md
+
+# Temporary/backup files
+*.bak
+*.tmp
+*~
+.*.swp

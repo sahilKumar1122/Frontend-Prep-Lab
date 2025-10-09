@@ -2,6 +2,28 @@
 
 Senior-level Angular interview questions with production-grade answers, following industry best practices.
 
+## ⚡ Quick Start
+
+### 📄 **Single-Page Format** (NEW - Easiest to Search!)
+
+**[→ ALL 270 Questions on One Page](./ALL_QUESTIONS.md)** ⭐
+
+Perfect for:
+- ✅ Quick search (Ctrl+F)
+- ✅ Printing for offline study
+- ✅ Interview tomorrow prep
+- ✅ No clicking through pages
+
+---
+
+### 📚 **Other Resources:**
+
+- **[Rapid-Fire Questions](./rapid-fire-questions.md)** - 100+ concepts with quick answers
+- **[Deep-Dive Articles](./fundamentals.md)** - Comprehensive explanations
+- 🎮 **[Interactive Examples](../STACKBLITZ_EXAMPLES.md#-angular-examples)** - 10 live code playgrounds
+
+---
+
 ## 📚 Topics Covered
 
 ### 1. [Fundamentals](./fundamentals.md)

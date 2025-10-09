@@ -19,6 +19,47 @@ Angular's change detection is a sophisticated system that determines when and wh
 
 ---
 
+## **Visual Overview: Change Detection Flow**
+
+```mermaid
+graph TD
+    Start[User Action<br/>Click, Input, etc.] --> Zone[Zone.js Intercepts Event]
+    Zone --> Async{Async Operation?}
+    
+    Async -->|Yes| Schedule[Schedule Change Detection]
+    Async -->|No| Trigger[Trigger CD Immediately]
+    
+    Schedule --> Trigger
+    Trigger --> RootCheck[Start from Root Component]
+    
+    RootCheck --> Strategy{Component Strategy?}
+    
+    Strategy -->|Default| CheckAll[Check ALL Components]
+    Strategy -->|OnPush| CheckOnPush{Input Changed?<br/>Event Fired?<br/>Async Emitted?}
+    
+    CheckOnPush -->|Yes| CheckComp[Check Component]
+    CheckOnPush -->|No| SkipComp[Skip Component]
+    
+    CheckAll --> UpdateDOM[Update DOM if Needed]
+    CheckComp --> UpdateDOM
+    SkipComp --> Done[Done]
+    UpdateDOM --> Done
+    
+    style Start fill:#f96,stroke:#333,stroke-width:2px
+    style Zone fill:#ff9,stroke:#333,stroke-width:2px
+    style CheckAll fill:#f99,stroke:#333,stroke-width:2px
+    style CheckOnPush fill:#9f9,stroke:#333,stroke-width:2px
+    style Done fill:#99f,stroke:#333,stroke-width:2px
+```
+
+**Key Insights from the Diagram:**
+1. ✅ Zone.js catches ALL async operations
+2. ✅ Default strategy = Check entire tree (expensive)
+3. ✅ OnPush strategy = Smart conditional checking (90% faster)
+4. ✅ Understanding this flow is critical for performance optimization
+
+---
+
 ## **The Complete Change Detection Flow**
 
 ### **Step 1: Event Occurs in Browser**
@@ -336,6 +377,46 @@ export class UserProfileComponent {
 ---
 
 ### **ChangeDetectionStrategy.OnPush**
+
+#### **Visual Comparison: Default vs OnPush**
+
+```mermaid
+graph LR
+    subgraph "Default Strategy"
+        Event1[Any Event] --> CD1[Check Entire Tree]
+        CD1 --> All1[Check ALL Components]
+        All1 --> Update1[Update DOM]
+    end
+    
+    subgraph "OnPush Strategy"
+        Event2[Event] --> Check2{Conditions}
+        Check2 -->|Input Ref Changed| CD2[Check Component]
+        Check2 -->|Event in Component| CD2
+        Check2 -->|Async Pipe Emitted| CD2
+        Check2 -->|markForCheck Called| CD2
+        Check2 -->|None| Skip2[Skip Component]
+        CD2 --> Update2[Update DOM]
+    end
+    
+    Comparison[Performance Impact]
+    Default Strategy --> Comparison
+    OnPush Strategy --> Comparison
+    
+    Comparison --> Result1[Default: 100% CD calls]
+    Comparison --> Result2[OnPush: ~10% CD calls]
+    Comparison --> Result3[Result: 90% faster!]
+    
+    style CD1 fill:#f99,stroke:#333,stroke-width:2px
+    style CD2 fill:#9f9,stroke:#333,stroke-width:2px
+    style Result3 fill:#9f9,stroke:#333,stroke-width:3px
+```
+
+**Key Takeaways:**
+- 🔴 **Default:** Every event = check ALL components (expensive at scale)
+- 🟢 **OnPush:** Selective checking based on conditions (90%+ performance gain)
+- ⚡ **Real Impact:** 1000 components × 100 events = 100,000 checks → 10,000 checks
+
+---
 
 **HOW IT WORKS:**
 - Only checks component when:

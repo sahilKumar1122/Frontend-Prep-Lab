@@ -23,6 +23,59 @@ Angular testing isn't just "write specs and run them" - it's a sophisticated fra
 
 ---
 
+## **Visual Overview: Testing Strategy Pyramid**
+
+```mermaid
+graph TD
+    Start[Testing Strategy]
+    
+    Start --> Unit[Unit Tests<br/>60% of tests]
+    Start --> Integration[Integration Tests<br/>30% of tests]
+    Start --> E2E[E2E Tests<br/>10% of tests]
+    
+    Unit --> TestBed[TestBed Setup]
+    TestBed --> Components[Test Components]
+    TestBed --> Services[Test Services]
+    TestBed --> Pipes[Test Pipes]
+    TestBed --> Directives[Test Directives]
+    
+    Components --> Async{Async Operations?}
+    Async -->|Yes| FakeAsync[fakeAsync + tick<br/>Synchronous control]
+    Async -->|No| Sync[Synchronous Tests<br/>Simple assertions]
+    
+    FakeAsync --> Mock[Mock Dependencies]
+    Sync --> Mock
+    
+    Mock --> HTTP[HttpTestingController<br/>Mock HTTP calls]
+    Mock --> Spies[Jasmine Spies<br/>Mock services]
+    Mock --> Fixtures[Test Fixtures<br/>Sample data]
+    
+    Integration --> Feature[Feature Tests<br/>Multiple Components]
+    Feature --> UserFlow[User Workflows<br/>Real scenarios]
+    
+    E2E --> Critical[Critical Paths Only<br/>Most important]
+    Critical --> Login[Login Flow]
+    Critical --> Purchase[Purchase Flow]
+    Critical --> Submit[Data Submission]
+    
+    style Unit fill:#9f9,stroke:#333,stroke-width:2px
+    style Integration fill:#ff9,stroke:#333,stroke-width:2px
+    style E2E fill:#9ff,stroke:#333,stroke-width:2px
+```
+
+**Testing Pyramid Philosophy:**
+- ✅ **60% Unit Tests:** Fast, isolated, test single units
+- ✅ **30% Integration Tests:** Test component interactions
+- ✅ **10% E2E Tests:** Critical user journeys only (slow, brittle)
+
+**Why This Distribution:**
+- 🚀 **Unit tests** run in milliseconds (fast feedback)
+- 🔄 **Integration tests** catch real bugs in component interactions
+- 🎯 **E2E tests** validate critical business flows
+- 💰 **Cost**: Unit ($) < Integration ($$) < E2E ($$$)
+
+---
+
 ### **How TestBed Actually Works**
 
 ```typescript
