@@ -1,12 +1,50 @@
 # Angular Fundamentals
 
 ## Table of Contents
+
+### Core Concepts
 - [What is Angular](#what-is-angular)
 - [Angular Architecture](#angular-architecture)
+
+### Components & Lifecycle
 - [Components](#components)
+- [Component Lifecycle Hooks](#question-explain-the-complete-lifecycle-of-an-angular-component-from-initialization-to-destruction) - [Deep Dive →](./lifecycle-hooks.md)
+
+### Advanced Concepts
+- [Change Detection Mechanism](#question-walk-me-through-angulars-change-detection-mechanism) - [Deep Dive →](./change-detection.md)
+- [Dependency Injection System](#question-explain-angulars-dependency-injection-system-in-detail) - [Deep Dive →](./dependency-injection.md)
+- [RxJS Operators (switchMap, mergeMap, concatMap, exhaustMap)](#question-explain-the-difference-between-switchmap-mergemap-concatmap-and-exhaustmap) - [Deep Dive →](./rxjs-operators.md)
+- [Constructor vs ngOnInit](#question-explain-the-difference-between-ngoninit-and-the-constructor) - [Deep Dive →](./constructor-vs-ngoninit.md)
+
+### Architecture & Design
 - [Modules](#modules)
-- [Dependency Injection](#dependency-injection)
+- [Content Projection](#question-explain-content-projection-and-how-angular-internally-handles-it) - [Deep Dive →](./content-projection.md)
+
+### Performance & Optimization
+- [Performance Optimization (10+ Techniques)](#question-angular-apps-dont-just-get-slow--theyre-made-slow-by-developer-mistakes) - [Deep Dive →](./performance-optimization.md)
 - [Data Binding](#data-binding)
+
+### State Management
+- [NgRx State Management](#question-explain-how-ngrx-or-any-redux-style-library-integrates-with-angular) - [Deep Dive →](./ngrx-state-management.md)
+
+### Testing & Debugging
+- [Testing Strategy (TestBed, Async, Mocking)](#question-youve-written-production-grade-angular-code--now-prove-you-can-test-it-properly) - [Deep Dive →](./testing-strategy.md)
+- [Memory Leak Debugging & Forensics](#question-real-world-debugging--architecture-no-shortcuts-no-guesses) - [Deep Dive →](./debugging-memory-leaks.md)
+
+### Modern Angular (17-18+)
+- [Modern Angular Features](#question-modern-angular-features--evolving-fundamentals) - [Deep Dive →](./modern-angular-features.md)
+  - Signals & Reactivity
+  - Standalone Components
+  - Zoneless Change Detection
+  - Deferred Loading
+  - Server-Side Hydration
+
+### Additional Topics
+- [Directives](#additional-topics)
+- [Pipes](#additional-topics)
+- [Forms](#additional-topics)
+- [Routing & Navigation](#additional-topics)
+- [HTTP Client & Interceptors](#additional-topics)
 
 ---
 
@@ -300,7 +338,7 @@ src/
 
 ## Components
 
-### Question: Explain Angular component lifecycle hooks and when to use each one.
+### Question: Explain the complete lifecycle of an Angular component from initialization to destruction. Don't just list the hooks - explain WHEN and WHY each fires, and give me a real scenario where you'd use each one. If you miss any or give shallow answers, we're going to have problems.
 
 **Answer:**
 
@@ -759,6 +797,46 @@ ngDoCheck(): void {
 The hooks that run on every change detection cycle (ngDoCheck, ngAfterContentChecked, ngAfterViewChecked) should be avoided unless absolutely necessary. They can destroy performance in large applications. Always use `OnPush` change detection strategy and immutable data patterns when possible.
 
 **Memory Leak Detection:** In Chrome DevTools, take heap snapshots before and after navigating to/from your component multiple times. If memory keeps growing, you have a leak. Common culprits: unsubscribed Observables, event listeners, and third-party libraries not properly disposed.
+
+---
+
+### Question: Walk me through Angular's change detection mechanism from the moment an event (say a button click) occurs in the browser to when the DOM actually updates. I want you to cover: The role of Zone.js in triggering change detection, How Angular's ChangeDetectorRef interacts with it, The difference between ChangeDetectionStrategy.Default and OnPush, What happens internally when you mark a component for check, How you would manually optimize change detection in a large app. And don't just talk theory — give me a concrete example where you switched a component from Default to OnPush, what problem it solved, and what pitfalls you faced. If you skip Zone.js internals or fail to explain how Angular decides which components to re-render, that's a red flag.
+
+**Answer:**
+
+Angular's change detection isn't just "check for changes" - it's a sophisticated system involving Zone.js monkey-patching, change detector trees, and strategic optimization. Understanding the complete flow from browser event to DOM update is crucial for building performant applications.
+
+**For the complete deep dive covering Zone.js internals, ChangeDetectorRef mechanics, Default vs OnPush strategies, manual optimization techniques, and real-world case studies with performance improvements, see [Change Detection Deep Dive](./change-detection.md)**
+
+---
+
+### Question: Explain Angular's Dependency Injection system in detail. Don't just say "it injects services." I want you to walk me through exactly how Angular resolves a dependency — from provider registration to instance creation. Cover these points specifically: How the hierarchical injector tree works (root, module, component, directive level), The difference between providing a service in a module vs component vs using @Injectable({ providedIn: 'root' }), What are injection tokens and when do you need them? What is a multi-provider and where would you use one? How does tree-shaking interact with DI? What happens if two injectors provide the same token? And then — real-world time: Give me an example from an actual project where you had to fix a service scope bug caused by a wrong provider configuration. What did you do, and what did you learn from it? If you just say "Angular creates services as singletons," we're done. So — how does Angular really resolve dependencies?
+
+**Answer:**
+
+Angular's DI system isn't just "inject and use" - it's a sophisticated hierarchical system with multiple injector levels, provider strategies, and tree-shaking optimizations. Understanding how dependency resolution actually works is essential for avoiding scope bugs and memory leaks.
+
+**For the complete deep dive covering hierarchical injector trees, provider scopes, injection tokens, multi-providers, tree-shaking mechanics, collision handling, and a real-world bug fix case study, see [Dependency Injection Deep Dive](./dependency-injection.md)**
+
+---
+
+### Question: Explain the difference between switchMap, mergeMap, concatMap, and exhaustMap — but don't just parrot definitions. I want to know: Exactly how each operator handles inner subscriptions, What happens if the source observable emits again before the inner one completes, Which one you'd pick for HTTP requests, real-time data streams, and user input debouncing — and why, How each operator affects concurrency and memory usage, How you'd debug an observable chain if a stream unexpectedly cancels mid-flight. Then, I'll push further: Give me a real bug you faced where the wrong RxJS operator caused unexpected behavior. What changed when you fixed it, and why did the new operator work? Finally, what's your unsubscribe strategy — and why do you think it's the safest for complex reactive chains? If you answer this with generic "switchMap cancels previous observables" nonsense, that's textbook fluff. I want mechanics — marble diagram-level clarity.
+
+**Answer:**
+
+RxJS flattening operators aren't just "merge observables" - each has specific concurrency behavior, memory implications, and use cases. Understanding the internal mechanics and when each operator fails is critical for building reliable reactive applications.
+
+**For the exhaustive deep dive covering internal mechanics, marble diagrams, use case selection, concurrency/memory analysis, debugging strategies, a real-world bug fix, and comprehensive unsubscribe strategies, see [RxJS Operators Deep Dive](./rxjs-operators.md)**
+
+---
+
+### Question: Explain the difference between ngOnInit() and the constructor in Angular components. What is each one used for? When exactly does Angular call them in the component lifecycle? Give a scenario where using ngOnInit() is required instead of the constructor, and vice versa. Follow-up traps you should be ready for (if you get this in an interview): What happens if you try to access an @Input() property inside the constructor? Can ngOnInit() be async? Should it be? What's the difference between using dependency injection in the constructor vs in ngOnInit()? Let's start — explain exactly how Angular initializes a component and the role of each of these two methods. (Be precise, not vague — I'll challenge incomplete answers.)
+
+**Answer:**
+
+The constructor vs ngOnInit distinction isn't just "constructor is first, ngOnInit is second" - it's about understanding Angular's initialization pipeline, dependency injection timing, and when component bindings are available. Misusing these can lead to subtle bugs.
+
+**For the complete deep dive covering exact call timing, DI differences, @Input() availability, async implications, and real-world scenarios where one is required over the other, see [Constructor vs ngOnInit Deep Dive](./constructor-vs-ngoninit.md)**
 
 ---
 
@@ -1501,7 +1579,23 @@ ngOnInit() { this.totalPrice = this.calculate(); }
 
 ---
 
-### Question: Explain content projection and how Angular internally handles it.
+### Question: Explain content projection and how Angular internally handles it. I'm not asking you to define <ng-content> — I want the full pipeline.
+
+You'll need to cover:
+- How Angular parses and renders <ng-content> during component compilation
+- The difference between <ng-content>, <ng-container>, and <ng-template> — structurally, not just "one doesn't render DOM"
+- How multi-slot projection works
+- What happens if projected content has its own bindings or structural directives
+- How the change detection context of projected content differs from that of the host component
+
+Then give me a real-world scenario:
+- Suppose you're building a highly reusable modal or table component. How would you design it using content projection to allow custom headers, footers, or body templates?
+- What pitfalls have you hit (e.g., projected component not updating, losing context, etc.) and how did you fix them?
+
+And finally:
+- Would you ever use content projection and dynamic component loading together? Explain how you'd manage lifecycle and change detection in that hybrid setup.
+
+If your answer stops at "ng-content displays child HTML," that's a red flag. So, tell me — how does Angular really handle content projection under the hood?
 
 **Answer:**
 
@@ -1571,7 +1665,26 @@ export class HostComponent {}
 
 ---
 
-### Question: What are the real technical causes of Angular performance degradation and how do you fix them?
+### Question: Angular apps don't just "get slow" — they're made slow by developer mistakes. So I want you to list at least 10 real, technical causes of Angular performance degradation and how you'd fix each.
+
+You must cover at least these categories:
+- Change detection bloat — how it's triggered, and how to reduce it
+- DOM rendering inefficiencies — e.g., ngFor pitfalls and trackBy usage
+- Inefficient data flow or RxJS misuse — how bad reactive patterns kill performance
+- Memory leaks — how to detect, reproduce, and fix them
+- Lazy loading & preloading strategies — when and how to use them
+- Bundle size optimization — specific techniques (not "use lazy loading" — that's surface-level)
+- Template binding performance — what happens with heavy pipes or nested structures
+- CDK Virtual Scroll — when to use it, when not to
+- Zone.js performance overhead — what can you do to minimize or bypass it
+- Third-party library bloat — how to audit and tree-shake
+
+Then — I want a practical case:
+- You have a list of 10,000 records rendering in real time with filter inputs. The UI lags badly. Walk me step by step through your optimization process, including exact tools, metrics, and Angular-specific features you'd use.
+
+Don't give me generic answers like "use OnPush." I want the full thought process — profiling, analyzing, fixing, validating.
+
+Would you deploy your optimized solution to production confidently? Defend that answer.
 
 **Answer:**
 
@@ -1635,7 +1748,25 @@ Angular apps don't "just get slow" - they're made slow by specific, identifiable
 
 ---
 
-### Question: Explain how NgRx integrates with Angular - walk through the complete data flow from dispatch to UI update.
+### Question: Explain how NgRx (or any Redux-style library) integrates with Angular — but I don't want marketing talk. I want you to walk me through the entire data flow from a component dispatching an action to the UI re-rendering.
+
+Specifically, cover:
+- Action lifecycle — from store.dispatch() to the reducer executing
+- How reducers produce new immutable state and why immutability is crucial
+- How selectors memoize derived state and prevent unnecessary change detection
+- How effects work — particularly their relationship with RxJS streams and async operations
+- How Angular knows to update only affected components after the store changes
+
+Then I want you to defend your design choices:
+- When is NgRx the wrong choice? Give a concrete example.
+- Compare NgRx to Akita and NGXS — pros, cons, and trade-offs.
+- If you were building a mid-sized project with moderate complexity, how would you decide whether to introduce a state library at all?
+- What's your strategy to keep NgRx boilerplate manageable in a large codebase?
+
+And finally:
+- Let's say your effect starts firing multiple duplicate API calls due to race conditions. How do you fix that? Which RxJS operator would you use — and why?
+
+If you give me "Actions go to reducers, reducers change state" as your explanation, that's a red flag. I want architecture-level understanding — the why, not just the what.
 
 **Answer:**
 
@@ -1784,7 +1915,24 @@ export class UserComponent {
 
 ---
 
-### Question: How do you design and structure production-grade tests for Angular applications?
+### Question: You've written production-grade Angular code — now prove you can test it properly. Walk me through how you design, write, and structure tests for a complex Angular module. I want you to cover unit, integration, and end-to-end levels, but focus deep on Angular TestBed and async testing.
+
+Specifically:
+- Explain how the Angular TestBed actually works under the hood — how it creates a testing module and component fixture.
+- What's the difference between testing a standalone component vs a module-based component?
+- How do you test async operations like HTTP calls or observable streams? Explain fakeAsync, tick, flush, and when each fails.
+- How do you mock dependencies — services, HTTP requests, child components — and when should you not mock something?
+- Explain how to detect and prevent flaky tests — what usually causes them in Angular environments?
+- What's the difference between detectChanges() and auto change detection in Angular testing?
+- How do you test components using OnPush change detection?
+
+Then give me a real example:
+- You have a component that makes an HTTP request, processes the response through RxJS operators, and updates a view. Walk me through writing a complete test for this — from setup to verification.
+
+Finally:
+- Would you trust 100% test coverage as a sign of production readiness? Why or why not?
+
+If your answer starts with "we just use Jasmine and Karma," stop — that's textbook. I want deep insight into testing strategy, isolation, and real-world maintainability.
 
 **Answer:**
 
@@ -1945,6 +2093,379 @@ Component with HTTP, RxJS operators (debounceTime, switchMap, catchError), and v
 - Critical analysis of test coverage
 
 **See the [Testing Strategy Deep Dive](./testing-strategy.md)**
+
+---
+
+### Question: Real-World Debugging & Architecture (No shortcuts, no guesses) - Let's say this is your scenario: Your Angular app has been running in production for a few months. After ~30 minutes of continuous use, the browser tab starts lagging and eventually crashes due to memory exhaustion. There's no obvious culprit in the code.
+
+Walk me through exactly how you'd tackle this. I want you to cover:
+- How you'd detect and reproduce the memory leak locally
+- Which browser tools or profiling techniques you'd use (be specific — not just "Chrome DevTools")
+- Common Angular patterns that cause leaks (give at least 5)
+- How to identify leaked subscriptions, detached DOM elements, or zombie components
+- How ChangeDetectionStrategy, RxJS misuse, or incorrect DI scoping could be contributing
+- How you'd fix the issue — both immediate mitigation and long-term architectural change
+- How to validate that the fix actually worked before redeploying
+
+Then I want a real-world story (if you have one):
+- A time when you encountered a tricky leak or performance issue in Angular.
+- What caused it, how you found it, and what you changed.
+
+Finally, defend your answer:
+- Would you hotfix this in production or schedule a refactor?
+- How do you ensure your team never ships this kind of problem again?
+
+If your answer is "unsubscribe in ngOnDestroy," that's surface-level and won't cut it. I want your full forensic process — like a senior engineer would do under pressure.
+
+**Answer:**
+
+This is a production crisis requiring systematic forensic analysis, not guesswork. Memory leaks in production are silent killers that require methodical detection, reproduction, profiling, root cause analysis, and both immediate and long-term fixes.
+
+**For the complete forensic process including detection techniques, specific Chrome DevTools usage (heap snapshots, allocation timeline, detached DOM inspector), 7+ common leak patterns, identification strategies, root cause analysis, hotfix vs refactor decision framework, real-world war story, and comprehensive prevention strategy, see [Debugging Memory Leaks Deep Dive](./debugging-memory-leaks.md)**
+
+**The Forensic Process:**
+
+**1. Detection & Evidence Gathering:**
+```typescript
+// Gather from production:
+- Error tracking (Sentry): "Out of memory" after ~30 min
+- RUM data: Correlates with /dashboard route
+- Browser patterns: Mostly Chrome users
+- User behavior: Tab switching + modal opening pattern
+```
+
+**2. Reproduction Locally:**
+```typescript
+// Automated reproduction script
+for (let i = 0; i < 100; i++) {
+  cy.get('[data-tab="overview"]').click();
+  cy.get('[data-tab="details"]').click();
+  cy.get('[data-action="open-modal"]').click();
+  cy.get('[data-action="close-modal"]').click();
+  
+  // Memory should stabilize
+  // Actual: 50MB → 500MB → crash
+}
+```
+
+**3. Chrome DevTools Arsenal (Specific Tools):**
+- **Heap Snapshots** - Compare before/after to see growing objects
+- **Allocation Timeline** - See continuous allocation without GC
+- **Performance Tab** - Identify heavy functions (ngDoCheck called 1500 times!)
+- **Memory Timeline** - See sawtooth pattern with rising baseline
+- **Detached DOM Inspector** - Find nodes removed from DOM but still in memory
+- **Allocation Sampling** - Lightweight profiling of allocations
+
+**4. Common Angular Leak Patterns (7+):**
+```typescript
+1. ❌ Unsubscribed Observables
+   - HTTP, intervals, WebSockets without takeUntil
+
+2. ❌ Event Listeners Never Removed
+   - window.addEventListener without cleanup
+
+3. ❌ Timers Never Cleared
+   - setInterval, setTimeout chains, requestAnimationFrame
+
+4. ❌ Third-Party Libraries Not Destroyed
+   - Chart.js, D3, Leaflet without .destroy()
+
+5. ❌ Incorrect DI Scoping
+   - Component-provided service with unbounded cache
+
+6. ❌ Detached DOM References
+   - Storing element references that prevent GC
+
+7. ❌ Unbounded Data Structures
+   - Arrays growing forever (historical data)
+```
+
+**5. Root Causes:**
+
+**CD Strategy Masking Leaks:**
+```typescript
+// OnPush makes leaks silent
+// Default CD = slowdown noticed quickly
+// OnPush CD = leak accumulates unnoticed until crash
+```
+
+**RxJS Misuse:**
+```typescript
+// Nested subscriptions, uncompleted Subjects
+// shareReplay without refCount
+// Infinite retry() loops
+```
+
+**DI Scoping:**
+```typescript
+// Module-scoped service with per-component state
+// State accumulates across 100s of component instances
+```
+
+**6. The Fix - DO BOTH:**
+
+**Immediate Hotfix (2-4 hours):**
+```typescript
+- Add memory monitoring and alerts
+- Implement circuit breaker
+- Auto-refresh on high memory
+- Fix worst offenders
+```
+
+**Long-Term Refactor (1-2 weeks):**
+```typescript
+- Implement BaseComponent with cleanup
+- Add ESLint rules for leak prevention
+- Create SubscriptionManager utility
+- Add automated memory tests to CI/CD
+- Team training and guidelines
+```
+
+**7. Validation:**
+```typescript
+// Automated tests
+it('should not leak after 100 create/destroy cycles', () => {
+  expect(memoryGrowth).toBeLessThan(10MB);
+});
+
+// Staging E2E
+// 30 minutes of use → memory stabilizes < 200MB
+
+// Production monitoring
+// p99 memory: 1850MB → 210MB (88% improvement!)
+```
+
+**Real-World War Story:**
+
+**The WebSocket Trading App Crisis:**
+- Financial trading dashboard crashing after 20-30 minutes
+- Cost: $10,000+ per crash in lost trades
+- Root cause: Unbounded array storing all price updates
+  - 10 updates/sec × 30 min = 18,000 items × 5KB = 1.2GB
+- Also: 450 leaked subscriptions from destroyed components
+- **Fix:** Circular buffer (keep last 1000) + proper cleanup
+- **Result:** 1.8GB → 85MB (95% reduction), crashes eliminated
+
+**Hotfix vs Refactor? DO BOTH**
+- Hotfix stops immediate bleeding
+- Refactor prevents recurrence
+- This is the senior engineer answer
+
+**Prevention Strategy:**
+- Code review checklist (subscriptions, events, timers, DOM refs, DI)
+- ESLint rules (require-subscription-cleanup, no-unbounded-arrays)
+- Automated memory tests in CI/CD
+- Team training (3-week curriculum)
+- Continuous production monitoring
+
+**For the complete step-by-step forensic process with all tools, techniques, patterns, real code examples, and prevention strategies, see [Debugging Memory Leaks Deep Dive](./debugging-memory-leaks.md)**
+
+---
+
+### Question: Modern Angular Features & Evolving Fundamentals (Let's separate the up-to-date from the outdated) - Angular has evolved massively in the last few versions — signals, standalone components, zoneless change detection, deferred loading, hydration, and more. Let's test whether you've evolved with it.
+
+I want you to explain the following modern Angular concepts clearly — with comparisons, internal behavior, and migration reasoning.
+
+🔹 1. Standalone Components
+- What are standalone components, and how do they differ from NgModules?
+- How does Angular's compiler handle dependency resolution and scope for standalone components?
+- How do you integrate them with routing and lazy loading?
+- Would you migrate an existing large NgModule-based app to standalone components? Why or why not?
+
+🔹 2. Angular Signals
+- Explain what signals are and why Angular introduced them.
+- Compare them to RxJS Observables — both conceptually and in terms of change detection triggering.
+- How do signal, computed, and effect work internally?
+- What problem do signals solve that Zone.js and ChangeDetectorRef could not?
+- Would you mix signals and RxJS in one app? If yes, how would you bridge them effectively?
+
+🔹 3. Zoneless Angular (Zone.js Opt-out)
+- What is Zone.js doing today in Angular apps, and how does Angular's new zoneless change detection model replace it?
+- How does runOutsideAngular() differ in purpose from removing Zone.js entirely?
+- What are the tradeoffs of going zoneless — and how would you manually trigger change detection without it?
+
+🔹 4. Deferred Loading & Hydration
+- What is deferred loading (introduced in Angular 17+)? How does it differ from traditional lazy loading?
+- Explain server-side hydration — what problem does it solve, and how does Angular handle it internally?
+- How would you debug hydration mismatches between server and client?
+
+🔹 5. Signals vs Observables — Real Use Case
+- You have a dashboard with multiple widgets updating in real-time: When would you pick signals over observables, and vice versa?
+- How would you architect a hybrid system that leverages both efficiently?
+
+And finally, a judgment question —
+- You're building a new enterprise Angular 18 app from scratch. Would you go fully standalone, zoneless, and signal-based — or stick to the old stable ecosystem? Defend your decision technically and practically (think: team maturity, migration path, long-term maintainability).
+
+If you haven't used signals or standalone APIs hands-on, I'll know immediately. If your answer is "I've read about them," that's a red flag — I want real, production-level reasoning.
+
+Go — start with signals. What exactly makes them different from observables under the hood?
+
+**Answer:**
+
+Angular has fundamentally evolved. These aren't just "new features" - they represent architectural shifts in how Angular handles reactivity, modularity, and performance.
+
+**For comprehensive coverage of all modern Angular features including internal signal mechanics, standalone component compilation, zoneless architecture, deferred loading, SSR hydration, real-world use cases, and production architecture decisions, see [Modern Angular Features Deep Dive](./modern-angular-features.md)**
+
+**Signals vs Observables - Under the Hood:**
+
+```typescript
+// Signal: Pull-based reactive primitive with automatic dependency tracking
+
+class Signal<T> {
+  private _value: T;
+  private _subscribers = new Set<Computation>();
+  
+  get(): T {
+    // Track dependency automatically
+    if (CURRENT_COMPUTATION) {
+      this._subscribers.add(CURRENT_COMPUTATION);
+    }
+    return this._value;
+  }
+  
+  set(newValue: T): void {
+    this._value = newValue;
+    // Notify dependents to mark dirty
+    this._subscribers.forEach(c => c.markDirty());
+    scheduleChangeDetection();
+  }
+}
+
+// Key Architectural Differences:
+{
+  observables: {
+    model: "Push (producer pushes values)",
+    execution: "Eager (pushes immediately)",
+    subscriptions: "Manual subscribe/unsubscribe",
+    memoryLeaks: "Possible if not unsubscribed",
+    changeDetection: "Async pipe calls markForCheck()"
+  },
+  
+  signals: {
+    model: "Pull (consumer pulls values)",
+    execution: "Lazy (pulls when needed)",
+    subscriptions: "Automatic dependency tracking",
+    memoryLeaks: "Not possible (no subscriptions)",
+    changeDetection: "Built-in (no markForCheck needed)"
+  }
+}
+```
+
+**Problem Signals Solve:**
+
+1. **Zone.js Overhead** - No need for global change detection
+2. **Manual Subscriptions** - No subscribe/unsubscribe needed
+3. **CD Noise** - Only affected DOM nodes update (fine-grained reactivity)
+
+**Standalone Components:**
+
+```typescript
+// Traditional: NgModule-based
+@NgModule({
+  declarations: [MyComponent],
+  imports: [CommonModule, FormsModule]
+})
+
+// Modern: Standalone
+@Component({
+  standalone: true,
+  imports: [CommonModule, FormsModule]  // Direct imports
+})
+export class MyComponent {}
+
+// Benefits: Clearer dependencies, better tree-shaking, component-level code splitting
+```
+
+**Zoneless Angular:**
+
+```typescript
+// What Zone.js does: Monkey-patches ~40 browser APIs
+// Overhead: ~200KB + wrapper execution on every event
+
+// Zoneless (Angular 17+):
+bootstrapApplication(AppComponent, {
+  providers: [provideExperimentalZonelessChangeDetection()]
+});
+
+// Trade-offs:
+// ✅ No Zone.js overhead, more predictable performance
+// ❌ Must use Signals or manual markForCheck()
+// Decision: Not yet for enterprise (still experimental)
+```
+
+**Deferred Loading:**
+
+```typescript
+@Component({
+  template: `
+    @defer (on viewport) {
+      <app-heavy-chart />
+    } @placeholder {
+      <div>Loading...</div>
+    }
+  `
+})
+
+// vs Traditional lazy loading (route-level)
+// Deferred = component-level chunks with declarative triggers
+```
+
+**Production Decision for New Angular 18 App:**
+
+```typescript
+{
+  standalone: "YES - 100%",
+  reason: "Future-proof, clearer dependencies, better code splitting",
+  
+  signals: "YES - For state management",
+  reason: "Fine-grained reactivity, no memory leaks, simpler",
+  
+  observables: "YES - For async operations",
+  reason: "HTTP, WebSocket, debounce - natural fit",
+  
+  zoneless: "NO - Not yet",
+  reason: "Still experimental, team learning curve, third-party compatibility",
+  
+  hydration: "YES - SSR with hydration",
+  reason: "SEO + performance, mature feature",
+  
+  deferredLoading: "YES - Aggressively",
+  reason: "Easy wins, better initial load"
+}
+
+// Rationale: Balance modern features with enterprise stability
+// Use proven features (Signals, Standalone)
+// Defer experimental ones (Zoneless) until mature
+```
+
+**Hybrid Architecture Pattern:**
+
+```typescript
+// Data layer - Observables
+http.get('/api/data').pipe(retry(3), catchError(...))
+
+// State layer - Signals
+count = signal(0);
+double = computed(() => count() * 2);
+
+// Bridge layer - toSignal/toObservable
+data = toSignal(http.get(...), { initialValue: null });
+
+// Use Signals for: State, derived values, UI
+// Use Observables for: HTTP, WebSocket, complex async
+// Bridge at boundaries
+```
+
+**For complete internal mechanics including:**
+- Signal dependency tracking algorithm
+- Standalone component compilation process
+- Zone.js monkey-patching details
+- Zoneless change detection model
+- SSR hydration internals and mismatch debugging
+- Real trading dashboard architecture (Signals + Observables)
+- Complete production decision framework with team considerations
+
+**See the [Modern Angular Features Deep Dive](./modern-angular-features.md)**
 
 ---
 
